@@ -1,0 +1,86 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║  PROMPT À COPIER-COLLER POUR UNE IA                                 ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Bonjour ! Je travaille sur un projet Python appelé "plan_mix_solver".
+
+🎯 OBJECTIF
+Générer automatiquement toutes les configurations spatiales possibles pour 
+placer des appartements sur une grille 2D rectangulaire, avec des 
+contraintes architecturales.
+
+📐 PRINCIPE
+- Grille rectangulaire (ex: 8×4 cellules de 3.5m×3.0m chacune)
+- Appartements occupent plusieurs cellules (ex: 2.5p = 4 cellules)
+- Cellules de circulation réservées (escaliers, couloirs)
+- Contraintes : connexité (cellules adjacentes), contact circulation, 
+  façade minimale
+
+🏗️ ARCHITECTURE (2 étapes)
+
+ÉTAPE 1 : Génération de solutions (solver.py + run.py)
+- Algorithme de backtracking pour placer les appartements
+- Flood-fill pour trouver placements connexes
+- Sauvegarde au format .pkl (pickle) avec matrices numpy
+- Structure : {grid: np.array, apartments: dict, metadata: dict}
+
+ÉTAPE 2 : Visualisation (visualizer.py + view.py)
+- Lit les .pkl et génère des PNG avec matplotlib
+- Couleurs par appartement, labels, panneau d'infos
+- Vue comparative de plusieurs solutions
+
+📊 STRUCTURE DE DONNÉES
+
+solution = {
+    "grid": np.array([[1, 1, -1, 2, ...], ...]),  # -1=circ, 0=vide, 1,2...=apts
+    "apartments": {
+        1: {"type": "2.5p", "size": 4.0, "cells": [(x,y),...], "facade_count": 4},
+        2: {"type": "3.5p", "size": 5.0, "cells": [...], "facade_count": 3},
+    },
+    "circulation_cells": [(2,0), (2,1), ...],
+    "metadata": {"grid_x": 3.5, "grid_y": 3.0, "n_cells_x": 8, ...}
+}
+
+🔍 ALGORITHME CLÉS
+
+Backtracking (_backtrack) :
+  Pour chaque appartement :
+    - Trouver tous placements possibles (flood-fill)
+    - Tester chaque placement
+    - Vérifier contraintes
+    - Si OK : placer et continuer avec suivant
+    - Sinon : backtrack
+
+Flood-fill (_flood_fill) :
+  BFS depuis une cellule libre, visite voisins adjacents (4-connexité)
+  jusqu'à atteindre la taille cible
+
+📁 FICHIERS PRINCIPAUX
+- solver.py (312 lignes) : Algorithme backtracking
+- run.py (121 lignes) : Config et point d'entrée étape 1
+- visualizer.py (349 lignes) : Rendu matplotlib
+- view.py (169 lignes) : Point d'entrée étape 2
+
+✅ ÉTAT ACTUEL
+- ✅ Génération fonctionnelle (54 solutions en test)
+- ✅ Visualisation fonctionnelle (11 PNG générés)
+- ⏳ Cellules coupées (0.5) non implémentées
+- ⏳ Optimisations (parallélisation) non faites
+
+📝 CONVENTIONS
+- Coordonnées : (x, y) où x=colonne, y=ligne, (0,0)=haut-gauche
+- Accès numpy : grid[y, x] (ligne, colonne)
+- IDs : -1=circulation, 0=vide, 1,2,3...=appartements
+
+🚀 UTILISATION
+python run.py       # Génère solutions/*.pkl
+python view.py      # Génère solutions/*/images/*.png
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📎 Document détaillé : Voir CONTEXT_FOR_AI.md pour plus de détails
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Peux-tu m'aider à faire ces modifications : 
+1. Actuellement, lorsque je mets plusieurs appartements dans la variable "apartments" du fichier run.py, je n'en vois que 2 dans les solutions.
+2. Actuellement, lors de la visualisation des solutions, elles sont coupées en bas, d'un demi carré.
+
