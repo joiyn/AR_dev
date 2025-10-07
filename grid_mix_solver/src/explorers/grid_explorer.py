@@ -23,7 +23,8 @@ def explore_solutions(
     output_directory="results",
     nombre_logements=None,
     max_etages_par_batiment=None,
-    round_variations=False
+    round_variations=False,
+    search_combinations=True
 ) -> Tuple[List, Optional[str]]:
     """
     Explore différentes configurations pour trouver celle qui respecte les pourcentages cibles.
@@ -45,6 +46,7 @@ def explore_solutions(
         method=method,
         percentage_tolerance=percentage_tolerance,
         round_variations=round_variations,
+        search_combinations=search_combinations,
         nombre_logements=nombre_logements,
         max_etages_par_batiment=max_etages_par_batiment,
         max_solutions_displayed=max_solutions_displayed,

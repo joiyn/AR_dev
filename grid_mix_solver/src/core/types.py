@@ -54,6 +54,9 @@ class SolverConfig:
     method: str = "round"
     percentage_tolerance: float = 2.0
     round_variations: bool = False
+    # Recherche exhaustive de toutes les combinaisons possibles
+    # Si False, on cherche seulement une combinaison valide (beaucoup plus rapide)
+    search_combinations: bool = True
     
     # Paramètres de projet
     nombre_logements: Optional[int] = None

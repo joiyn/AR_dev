@@ -8,12 +8,12 @@ from src.explorers.grid_explorer import explore_solutions
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Plages de recherche pour les dimensions de grille
-search_range_x = (3.2, 5)
-search_range_y = (3.2, 5)
+search_range_x = (3.2, 3.2)
+search_range_y = (3.2, 3.2)
 search_step = 0.1
 
 # Plage de recherche pour le nombre d'éléments de grille
-target_elements_range = (15, 60)
+target_elements_range = (60, 60)
 
 # Surfaces des appartements (en m²)
 apt_areas = {
@@ -44,9 +44,11 @@ percentage_tolerance = 2.0
 quantum = 0.5
 method = "round"
 round_variations = True
+# Activer la recherche exhaustive de combinaisons
+search_combinations = False
 
 # Contraintes du projet
-nombre_logements = 150
+nombre_logements = 160
 max_etages_par_batiment = 4.5
 
 # Affichage et sauvegarde des résultats
@@ -75,7 +77,8 @@ if __name__ == "__main__":
         output_directory=output_directory,
         nombre_logements=nombre_logements,
         max_etages_par_batiment=max_etages_par_batiment,
-        round_variations=round_variations
+        round_variations=round_variations,
+        search_combinations=search_combinations
     )
 
 

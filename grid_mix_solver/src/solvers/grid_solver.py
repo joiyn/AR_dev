@@ -77,6 +77,13 @@ class GridSolver(BaseSolver):
         """Évalue une grille donnée et retourne les solutions valides"""
         try:
             results = []
+            # Mode sans recherche de combinaisons: produire une solution pour chaque (x, y, target)
+            if not self.config.search_combinations:
+                # Construire une solution minimale sans combinaisons
+                # Pour rester compatible avec les analyses ultérieures, on met les pourcentages cibles
+                percentages = dict(self.config.target_percentages)
+                score = 0.0
+                return [self._create_solution(int(target_elements), grid_x, grid_y, [], percentages, score)]
             
             if not self.config.round_variations:
                 # Mode simple : une seule méthode d'arrondi
@@ -171,3 +178,36 @@ class GridSolver(BaseSolver):
         for apt, units in per_type.items():
             val_to_types.setdefault(units, []).append(apt)
         return val_to_types
+
+    def _find_one_combination(self, values: List[float], target: float) -> List[Tuple[float, ...]]:
+        """Retourne au plus une combinaison qui somme à target, sinon []."""
+        scale = round(1.0 / self.config.quantum)
+        vals_int = sorted(set(int(round(v * scale)) for v in values))
+        target_int = int(round(target * scale))
+        if not vals_int or min(vals_int) <= 0 or target_int < 0:
+            return []
+        # DP pour décider faisabilité et reconstruire UNE solution
+        reachable = [False] * (target_int + 1)
+        prev = [-1] * (target_int + 1)
+        choice = [-1] * (target_int + 1)
+        reachable[0] = True
+        for i, v in enumerate(vals_int):
+            for s in range(v, target_int + 1):
+                if not reachable[s] and reachable[s - v]:
+                    reachable[s] = True
+                    prev[s] = s - v
+                    choice[s] = i
+        if not reachable[target_int]:
+            return []
+        # Reconstruction
+        sol_int: List[int] = []
+        s = target_int
+        while s > 0 and choice[s] != -1:
+            v_idx = choice[s]
+            v = vals_int[v_idx]
+            sol_int.append(v)
+            s = prev[s]
+        if sum(sol_int) != target_int:
+            return []
+        sol = tuple(v / scale for v in sol_int)
+        return [sol]
