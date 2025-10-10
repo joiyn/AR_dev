@@ -9,7 +9,7 @@ from .base import BaseSolver
 from ..core.types import Solution, GridConfig
 from ..core.grid import quantize, units_per_type
 from ..core.combinations import all_sum_combinations
-from ..core.percentages import analyze_combinations_percentages, percentage_match_score, percentages_within_tolerance
+from ..core.percentages import analyze_combination_percentages, percentage_match_score, percentages_within_tolerance
 
 
 class GridSolver(BaseSolver):
@@ -102,15 +102,33 @@ class GridSolver(BaseSolver):
                 if not combos:
                     return []
                 
-                percentages = analyze_combinations_percentages(combos, val_to_types, self.config.apt_areas)
-                if percentages is None:
+                # Filtrer par longueur de combinaison si demandé
+                filtered_combos = []
+                if self.config.combination_length_range is not None:
+                    min_len, max_len = self.config.combination_length_range
+                    for c in combos:
+                        if min_len <= len(c) <= max_len:
+                            filtered_combos.append(c)
+                else:
+                    filtered_combos = combos
+
+                valid_combos = []
+                best_score = None
+                best_percentages = None
+                for c in filtered_combos:
+                    percentages = analyze_combination_percentages(c, val_to_types, self.config.apt_areas)
+                    if percentages is None:
+                        continue
+                    if not percentages_within_tolerance(percentages, self.config.target_percentages, self.config.percentage_tolerance):
+                        continue
+                    valid_combos.append(c)
+                    s = percentage_match_score(percentages, self.config.target_percentages)
+                    if best_score is None or s < best_score:
+                        best_score = s
+                        best_percentages = percentages
+                if not valid_combos:
                     return []
-                
-                if not percentages_within_tolerance(percentages, self.config.target_percentages, self.config.percentage_tolerance):
-                    return []
-                
-                score = percentage_match_score(percentages, self.config.target_percentages)
-                return [self._create_solution(int(target_elements), grid_x, grid_y, combos, percentages, score)]
+                return [self._create_solution(int(target_elements), grid_x, grid_y, valid_combos, best_percentages, float(best_score))]
             
             # Mode avec variations d'arrondi
             cell_area = grid_x * grid_y
@@ -138,7 +156,7 @@ class GridSolver(BaseSolver):
             scale = round(1.0 / self.config.quantum)
             combos_by_values_key = {}
 
-            for choice in product(*candidates_per_type):
+                for choice in product(*candidates_per_type):
                 scenario_per_type = {apt: units for apt, units in zip(types_list, choice)}
                 unique_values = sorted(set(scenario_per_type.values()))
                 
@@ -155,16 +173,34 @@ class GridSolver(BaseSolver):
                     combos_by_values_key[key_int] = combos
                 if not combos:
                     continue
-                
-                percentages = analyze_combinations_percentages(combos, val_to_types, self.config.apt_areas)
-                if percentages is None:
+
+                # Filtrer par longueur de combinaison si demandé
+                filtered_combos = []
+                if self.config.combination_length_range is not None:
+                    min_len, max_len = self.config.combination_length_range
+                    for c in combos:
+                        if min_len <= len(c) <= max_len:
+                            filtered_combos.append(c)
+                else:
+                    filtered_combos = combos
+
+                valid_combos = []
+                best_score = None
+                best_percentages = None
+                for c in filtered_combos:
+                    percentages = analyze_combination_percentages(c, val_to_types, self.config.apt_areas)
+                    if percentages is None:
+                        continue
+                    if not percentages_within_tolerance(percentages, self.config.target_percentages, self.config.percentage_tolerance):
+                        continue
+                    valid_combos.append(c)
+                    s = percentage_match_score(percentages, self.config.target_percentages)
+                    if best_score is None or s < best_score:
+                        best_score = s
+                        best_percentages = percentages
+                if not valid_combos:
                     continue
-                
-                if not percentages_within_tolerance(percentages, self.config.target_percentages, self.config.percentage_tolerance):
-                    continue
-                
-                score = percentage_match_score(percentages, self.config.target_percentages)
-                results.append(self._create_solution(int(target_elements), grid_x, grid_y, combos, percentages, score))
+                results.append(self._create_solution(int(target_elements), grid_x, grid_y, valid_combos, best_percentages, float(best_score)))
             
             return results
         except (ValueError, ZeroDivisionError):

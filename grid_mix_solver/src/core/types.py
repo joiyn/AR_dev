@@ -64,6 +64,9 @@ class SolverConfig:
     # Recherche exhaustive de toutes les combinaisons possibles
     # Si False, on cherche seulement une combinaison valide (beaucoup plus rapide)
     search_combinations: bool = True
+    # Contraintes sur les combinaisons (nombre d'appartements par combinaison)
+    # None = pas de contrainte; (min_count, max_count)
+    combination_length_range: Optional[Tuple[int, int]] = None
     
     # Paramètres de projet
     nombre_logements: Optional[int] = None

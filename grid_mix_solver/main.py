@@ -56,6 +56,8 @@ method = "round"
 round_variations = False
 # Activer la recherche exhaustive de combinaisons
 search_combinations = True
+# Restreindre le nombre d'appartements par combinaison (min, max) ou None
+combination_length_range = (3, 12)
 
 # Contraintes du projet
 nombre_logements = 160
@@ -82,6 +84,7 @@ if __name__ == "__main__":
         search_step=search_step,
         target_elements_range=target_elements_range,
         percentage_tolerance=percentage_tolerance,
+        combination_length_range=combination_length_range,
         max_solutions_displayed=max_solutions_displayed,
         save_to_file=save_to_file,
         output_directory=output_directory,

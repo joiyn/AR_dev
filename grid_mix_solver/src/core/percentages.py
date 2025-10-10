@@ -4,26 +4,23 @@ Calculs de pourcentages et scores
 from typing import Dict, List, Tuple, Optional, Union
 
 
-def analyze_combinations_percentages(
-    combos: List[Tuple[float, ...]],
+def analyze_combination_percentages(
+    combo: Tuple[float, ...],
     val_to_types: Dict[float, List[str]],
     apt_areas: Dict[str, float]
 ) -> Optional[Dict[str, float]]:
     """
-    Calcule les pourcentages de m² par type pour un ensemble de combinaisons.
-    Retourne None si ambiguïté (plusieurs types pour une même valeur).
+    Calcule les pourcentages de m² par type pour UNE combinaison.
+    Retourne None si ambiguïté (plusieurs types pour une même valeur) ou total nul.
     """
     # Vérifier qu'il n'y a pas d'ambiguïté
     for types in val_to_types.values():
         if len(types) != 1:
             return None
-    
-    # Compter occurrences par valeur
+    # Compter occurrences par valeur dans la combinaison
     value_counts: Dict[float, int] = {}
-    for combo in combos:
-        for v in combo:
-            value_counts[v] = value_counts.get(v, 0) + 1
-    
+    for v in combo:
+        value_counts[v] = value_counts.get(v, 0) + 1
     # Calculer m² par type
     sqm_by_type: Dict[str, float] = {}
     total_sqm = 0.0
@@ -32,11 +29,8 @@ def analyze_combinations_percentages(
         sqm = apt_areas[apt] * count
         sqm_by_type[apt] = sqm_by_type.get(apt, 0.0) + sqm
         total_sqm += sqm
-    
-    # Calculer pourcentages
-    if total_sqm == 0:
+    if total_sqm == 0.0:
         return None
-    
     percentages = {apt: (sqm / total_sqm * 100.0) for apt, sqm in sqm_by_type.items()}
     return percentages
 
