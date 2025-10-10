@@ -8,12 +8,12 @@ from src.explorers.grid_explorer import explore_solutions
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Plages de recherche pour les dimensions de grille
-search_range_x = (3.2, 3.2)
-search_range_y = (3.2, 3.2)
+search_range_x = (3.6, 3.6)
+search_range_y = (3.6, 3.6)
 search_step = 0.1
 
 # Plage de recherche pour le nombre d'éléments de grille
-target_elements_range = (60, 60)
+target_elements_range = (160, 180)
 
 # Surfaces des appartements (en m²)
 apt_areas = {
@@ -21,7 +21,7 @@ apt_areas = {
     "2.5p": 60,
     "3.5p": 80,
     "4.5p": 95,
-    "5.5p": 110
+    #"5.5p": 110
 }
 
 # Facteur de conversion net → surface de plancher
@@ -31,21 +31,31 @@ apt_floor_areas = {apt: area * net_to_floor_factor for apt, area in apt_areas.it
 # Pourcentages cibles (imposés par le programme du concours)
 target_percentages = {
     #"1p": 5,
-    "2.5p": 35.0,
+    "2.5p": 40.0,
     "3.5p": 25.0,
-    "4.5p": 30.0,
-    "5.5p": 7
+    "4.5p": 35.0,
+    #"5.5p": 7
 }
 
 # Tolérance de pourcentage
-percentage_tolerance = 2.0
+# Ancien comportement: une seule valeur (ex: 15.0) = ±15 points de % pour tous
+# Nouveau: vous pouvez définir par type soit une tolérance symétrique, soit un range absolu
+# Exemples:
+# percentage_tolerance = 15.0
+# percentage_tolerance = {"2.5p": 12.0, "3.5p": 8.0, "4.5p": 10.0}
+# percentage_tolerance = {"2.5p": (35.0, 45.0), "3.5p": (20.0, 30.0), "4.5p": (30.0, 40.0)}
+percentage_tolerance = {
+    "2.5p": (35.0, 45.0),
+    "3.5p": (20.0, 30.0),
+    "4.5p": (30.0, 40.0)
+}
 
 # Paramètres de quantification
 quantum = 0.5
 method = "round"
-round_variations = True
+round_variations = False
 # Activer la recherche exhaustive de combinaisons
-search_combinations = False
+search_combinations = True
 
 # Contraintes du projet
 nombre_logements = 160

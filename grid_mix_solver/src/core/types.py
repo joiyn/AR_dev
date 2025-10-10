@@ -52,7 +52,14 @@ class SolverConfig:
     # Paramètres de calcul
     quantum: float = 0.5
     method: str = "round"
-    percentage_tolerance: float = 2.0
+    # Peut être:
+    # - float: tolérance globale symétrique (± valeur en points de %)
+    # - Dict[str, float]: tolérance symétrique par type (± valeur)
+    # - Dict[str, Tuple[float, float]]: bornes absolues (min%, max%) par type
+    percentage_tolerance: Union[
+        float,
+        Dict[str, Union[float, Tuple[float, float]]]
+    ] = 2.0
     round_variations: bool = False
     # Recherche exhaustive de toutes les combinaisons possibles
     # Si False, on cherche seulement une combinaison valide (beaucoup plus rapide)

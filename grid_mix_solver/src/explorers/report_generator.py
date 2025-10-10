@@ -5,6 +5,8 @@ from typing import List, Optional, TextIO
 from datetime import datetime
 import os
 import math
+import shutil
+import re
 
 from ..core.types import Solution, SolverConfig, ProjectAnalysis
 
@@ -27,10 +29,18 @@ class ReportGenerator:
             os.makedirs(self.config.output_directory)
         
         # Générer le nom de fichier avec timestamp
+        timestamp: Optional[str] = None
         if output_path is None and self.config.save_to_file:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_filename = f"solutions_{timestamp}.txt"
             output_path = os.path.join(self.config.output_directory, output_filename)
+        elif output_path is not None and self.config.save_to_file:
+            # Tenter d'extraire le timestamp du chemin fourni
+            m = re.search(r"solutions_(\d{8}_\d{6})\\.txt$", output_path)
+            if m:
+                timestamp = m.group(1)
+            else:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         # Ouvrir le fichier de sortie
         log_file = open(output_path, 'w', encoding='utf-8') if self.config.save_to_file else None
@@ -49,6 +59,22 @@ class ReportGenerator:
             else:
                 self._write_no_solutions(log_file)
             
+            # Sauvegarder une copie des paramètres (main.py) avec le même timestamp
+            if self.config.save_to_file and timestamp:
+                try:
+                    project_root = os.getcwd()
+                    src_params = os.path.join(project_root, "main.py")
+                    if os.path.exists(src_params):
+                        params_filename = f"main_{timestamp}.py"
+                        dst_params = os.path.join(self.config.output_directory, params_filename)
+                        shutil.copyfile(src_params, dst_params)
+                        print(f"📎 Paramètres sauvegardés dans : {dst_params}")
+                        if log_file:
+                            log_file.write(f"Paramètres (copie de main.py) : {dst_params}\n")
+                except Exception:
+                    # Ne pas interrompre le flux si la copie échoue
+                    pass
+
             # Message console simplifié
             if solutions:
                 best = solutions[0]
@@ -93,7 +119,20 @@ class ReportGenerator:
         log_file.write("RECHERCHE DE CONFIGURATION OPTIMALE\n")
         log_file.write("═" * 80 + "\n\n")
         log_file.write(f"📋 Pourcentages imposés : {self.config.target_percentages}\n")
-        log_file.write(f"🎯 Tolérance par type : ±{self.config.percentage_tolerance}%\n")
+        # Affichage tolérance: accepter float, dict de float, dict de range
+        tol = self.config.percentage_tolerance
+        if isinstance(tol, (int, float)):
+            log_file.write(f"🎯 Tolérance par type : ±{float(tol)}%\n")
+        elif isinstance(tol, dict):
+            pretty = {}
+            for k, v in tol.items():
+                if isinstance(v, (int, float)):
+                    pretty[k] = f"±{float(v)}%"
+                else:
+                    pretty[k] = f"[{v[0]}, {v[1]}]%"
+            log_file.write(f"🎯 Tolérance par type : {pretty}\n")
+        else:
+            log_file.write(f"🎯 Tolérance par type : {tol}\n")
         log_file.write(f"📐 Plages de recherche :\n")
         log_file.write(f"   • grid_x : {self.config.search_range_x.min_val:g} à {self.config.search_range_x.max_val:g} m")
         if self.config.search_range_x.is_fixed:
@@ -178,7 +217,18 @@ class ReportGenerator:
             target_val = self.config.target_percentages[apt]
             actual_val = solution.percentages.get(apt, 0.0)
             diff = actual_val - target_val
-            emoji = "✓" if abs(diff) <= self.config.percentage_tolerance/2 else "~"
+            # Heuristique d'emoji selon respect tolérance (approx)
+            ok = False
+            tol = self.config.percentage_tolerance
+            if isinstance(tol, (int, float)):
+                ok = abs(diff) <= float(tol)
+            elif isinstance(tol, dict):
+                t = tol.get(apt)
+                if isinstance(t, (int, float)):
+                    ok = abs(diff) <= float(t)
+                elif isinstance(t, tuple) and len(t) == 2:
+                    ok = (t[0] <= actual_val <= t[1])
+            emoji = "✓" if ok else "~"
             log_file.write(f"      {emoji} {apt}: {actual_val:5.1f}% (cible: {target_val:5.1f}%, écart: {diff:+5.1f}%)\n")
         log_file.write(f"\n")
         
@@ -263,7 +313,7 @@ class ReportGenerator:
         if log_file:
             log_file.write("❌ Aucune solution trouvée avec les paramètres actuels.\n\n")
             log_file.write("💡 SUGGESTIONS pour trouver des solutions :\n")
-            log_file.write(f"   • Augmenter percentage_tolerance (actuellement {self.config.percentage_tolerance}% → essayer 10.0 ou 15.0)\n")
+            log_file.write("   • Assouplir percentage_tolerance (global ou par type)\n")
             log_file.write(f"   • Élargir target_elements_range (actuellement {self.config.target_elements_range} → essayer (5, 50))\n")
             log_file.write(f"   • Élargir search_range_x/y (actuellement x:{self.config.search_range_x.min_val}-{self.config.search_range_x.max_val}, y:{self.config.search_range_y.min_val}-{self.config.search_range_y.max_val})\n")
             log_file.write(f"   • Réduire search_step pour plus de précision (actuellement {self.config.search_range_x.step} → essayer 0.05)\n")
