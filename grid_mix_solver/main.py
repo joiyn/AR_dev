@@ -56,8 +56,10 @@ method = "round"
 round_variations = False
 # Activer la recherche exhaustive de combinaisons
 search_combinations = True
-# Restreindre le nombre d'appartements par combinaison (min, max) ou None
-combination_length_range = (3, 12)
+# Nombre maximum de combinaisons à retenir par solution
+# Les N combinaisons qui, ensemble, donnent les pourcentages les plus proches des cibles
+# None = pas de limite, 3 = valeur par défaut recommandée
+max_combinations_per_solution = 3
 
 # Contraintes du projet
 nombre_logements = 160
@@ -84,7 +86,7 @@ if __name__ == "__main__":
         search_step=search_step,
         target_elements_range=target_elements_range,
         percentage_tolerance=percentage_tolerance,
-        combination_length_range=combination_length_range,
+        max_combinations_per_solution=max_combinations_per_solution,
         max_solutions_displayed=max_solutions_displayed,
         save_to_file=save_to_file,
         output_directory=output_directory,
