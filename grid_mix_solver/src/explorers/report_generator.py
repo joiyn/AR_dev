@@ -234,9 +234,23 @@ class ReportGenerator:
         
         # Combinaisons
         log_file.write(f"  └─ {len(solution.combinations)} combinaison(s) possible(s) :\n")
+        # Préparer mapping unités → type (unique dans les solutions retenues)
+        val_to_type = {}
+        for apt, units in per_type.items():
+            if units not in val_to_type:
+                val_to_type[units] = apt
         for j, combo in enumerate(solution.combinations, 1):
             combo_str = " + ".join(f"{v:g}" for v in combo) + f" = {sum(combo):g}"
+            # Compter le nb de logements par type pour cette combinaison
+            counts = {apt: 0 for apt in sorted(self.config.apt_areas.keys())}
+            for v in combo:
+                apt = val_to_type.get(v)
+                if apt is not None:
+                    counts[apt] = counts.get(apt, 0) + 1
+            # Formater court: n'afficher que les types présents (>0)
+            counts_str = ", ".join(f"{apt}×{n}" for apt, n in counts.items() if n > 0) or "—"
             log_file.write(f"      {j}. {combo_str}\n")
+            log_file.write(f"         ↳ nb logements par type: {counts_str}\n")
         log_file.write(f"\n")
     
     def _analyze_project(self, solution: Solution) -> ProjectAnalysis:
