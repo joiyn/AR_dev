@@ -144,7 +144,7 @@ class GridSolver(BaseSolver):
             scale = round(1.0 / self.config.quantum)
             combos_by_values_key = {}
 
-                for choice in product(*candidates_per_type):
+            for choice in product(*candidates_per_type):
                 scenario_per_type = {apt: units for apt, units in zip(types_list, choice)}
                 unique_values = sorted(set(scenario_per_type.values()))
                 
